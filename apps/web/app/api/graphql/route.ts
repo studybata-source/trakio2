@@ -1,4 +1,6 @@
 import { createYoga, createSchema } from "@graphql-yoga/next";
+import { computeFinalPayable } from "@/lib/server/computeFinalPayable";
+import { chQueryEachRow } from "@/lib/server/clickhouse";
 
 const typeDefs = /* GraphQL */ `
   type Money { amount: Float! currency: String! }
@@ -34,6 +36,14 @@ const typeDefs = /* GraphQL */ `
   }
 `;
 
+const mockProduct = {
+  id: "B08N5WRWNW",
+  marketplace: "amazon_in",
+  title: "Mock Wireless Headphones",
+  image: "https://via.placeholder.com/600x400",
+  currency: "INR",
+};
+
 function generateSpark(range: string) {
   const n = range === "1D" ? 96 : range === "7D" ? 7 * 96 : 300;
   const now = Date.now();
@@ -47,31 +57,49 @@ function generateSpark(range: string) {
   });
 }
 
+async function fetchSparklineCH(productId: string, marketplace: string, range: string) {
+  const days = range === '1D' ? 1 : range === '7D' ? 7 : range === '1M' ? 30 : 90;
+  const rows = await chQueryEachRow<{ t: string; base: number; final: number; stock: string; seller?: string }>(
+    `SELECT
+      formatDateTime(scraped_at, '%Y-%m-%dT%H:%M:%S') AS t,
+      base_price AS base,
+      greatest(base_price - coalesce(coupon_savings,0) - coalesce(bank_offer_savings,0) + coalesce(shipping,0), 0) AS final,
+      stock_status AS stock,
+      seller_id AS seller
+     FROM price_ticks
+     WHERE product_id = {pid:String} AND marketplace = {mkt:String}
+       AND scraped_at >= now() - INTERVAL {days:Int32} DAY
+     ORDER BY scraped_at ASC`,
+    { pid: productId, mkt: marketplace, days }
+  );
+  return rows;
+}
+
 const resolvers = {
   Query: {
     product: (_: any, { id, marketplace }: any) => ({
-      id,
-      marketplace,
-      title: "Mock Wireless Headphones",
-      image: "https://via.placeholder.com/600x400",
-      currency: "INR",
+      ...(mockProduct.id === id && mockProduct.marketplace === marketplace ? mockProduct : { id, marketplace, title: mockProduct.title, image: mockProduct.image, currency: mockProduct.currency })
     }),
-    search: () => [],
+    search: () => [mockProduct],
   },
   Product: {
-    sparkline: (_: any, { range }: any) => generateSpark(range),
-    currentOffer: () => ({
-      final: { amount: 4139, currency: "INR" },
-      breakdown: [
-        { label: "MRP", delta: 4999 },
-        { label: "Coupon", delta: -500 },
-        { label: "Bank Offer", delta: -360 },
-        { label: "Shipping", delta: 40 },
-      ],
-      seller: "MockSeller",
-      stock: "in_stock",
-      updatedAt: new Date().toISOString(),
-    }),
+    sparkline: async (p: any, { range }: any) => {
+      try {
+        const chRows = await fetchSparklineCH(p.id, p.marketplace, range);
+        if (chRows.length) return chRows;
+      } catch {}
+      return generateSpark(range);
+    },
+    currentOffer: () => {
+      const calc = computeFinalPayable({ mrp: 4999, coupon: 500, bankPct: 10, bankCap: 400, shipping: 40 });
+      return {
+        final: { amount: Math.round(calc.final * 100) / 100, currency: "INR" },
+        breakdown: calc.breakdown.map(r => ({ label: r.label, delta: r.delta })),
+        seller: "MockSeller",
+        stock: "in_stock",
+        updatedAt: new Date().toISOString(),
+      };
+    },
     forecast: (_: any, { range }: any) => generateSpark(range),
     verdict: () => ({ decision: "Hold", prob: 0.63, confidence: 0.71, reason: "Price trending down; expected lower in 3-5 days." }),
   },
