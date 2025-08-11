@@ -1,5 +1,13 @@
 import { PriceSpark } from "../components/PriceSpark";
-import { gqlRequest } from "../lib/graphql";
+
+const API = process.env.NEXT_PUBLIC_GRAPHQL || "/api/graphql";
+
+async function gql(query: string, variables?: Record<string, unknown>) {
+  const res = await fetch(API, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ query, variables }), cache: 'no-store' });
+  const json = await res.json();
+  if (json.errors) throw new Error(JSON.stringify(json.errors));
+  return json.data;
+}
 
 const QUERY = `
 query Demo($id: ID!, $m: String!){
@@ -11,11 +19,9 @@ query Demo($id: ID!, $m: String!){
 }`;
 
 export default async function Page() {
-  const data = await gqlRequest<{ product: any }>(QUERY, { id: "B08N5WRWNW", m: "amazon_in" });
+  const data = await gql(QUERY, { id: "B08N5WRWNW", m: "amazon_in" });
   const p = data.product;
-
-  // Convert sparkline to simple SVG path for demo
-  const points = p.sparkline.map((_, i) => [i * (600 / p.sparkline.length), 20 + Math.sin(i / 7) * 8]);
+  const points = p.sparkline.map((_: any, i: number) => [i * (600 / p.sparkline.length), 20 + Math.sin(i / 7) * 8]);
   const d = points.reduce((acc: string, [x, y]: number[], idx: number) => acc + (idx === 0 ? `M${x} ${y}` : ` L${x} ${y}`), "");
 
   return (
