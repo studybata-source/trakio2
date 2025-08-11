@@ -5,7 +5,10 @@ const nextConfig = {
     remotePatterns: [
       { protocol: 'https', hostname: 'via.placeholder.com' }
     ]
-  }
+  },
+  headers: async () => [
+    { source: '/manifest.json', headers: [{ key: 'content-type', value: 'application/manifest+json' }] }
+  ],
 };
 
 export default nextConfig;

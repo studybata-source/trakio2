@@ -1,45 +1,22 @@
-import { PriceSpark } from "../components/PriceSpark";
-
-const API = process.env.NEXT_PUBLIC_GRAPHQL || "/api/graphql";
-
-async function gql(query: string, variables?: Record<string, unknown>) {
-  const res = await fetch(API, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ query, variables }), cache: 'no-store' });
-  const json = await res.json();
-  if (json.errors) throw new Error(JSON.stringify(json.errors));
-  return json.data;
-}
-
-const QUERY = `
-query Demo($id: ID!, $m: String!){
-  product(id: $id, marketplace: $m){
-    id title image currency
-    currentOffer { final { amount currency } breakdown { label delta } }
-    sparkline(range: "7D"){ t base final stock seller }
-  }
-}`;
+import Link from "next/link";
 
 export default async function Page() {
-  const data = await gql(QUERY, { id: "B08N5WRWNW", m: "amazon_in" });
-  const p = data.product;
-  const points = p.sparkline.map((_: any, i: number) => [i * (600 / p.sparkline.length), 20 + Math.sin(i / 7) * 8]);
-  const d = points.reduce((acc: string, [x, y]: number[], idx: number) => acc + (idx === 0 ? `M${x} ${y}` : ` L${x} ${y}`), "");
-
   return (
-    <main style={{ padding: 24 }}>
-      <style>{`:root { --brand-hue: 223; --brand-sat: 85%; --brand-lit: 62%; --accent: hsl(223 85% 62%); }`}</style>
-      <h1>{p.title}</h1>
-      <p>Final: {p.currentOffer.final.amount} {p.currentOffer.final.currency}</p>
-      <div style={{ background: "#0b0b0b", borderRadius: 12, padding: 16, boxShadow: "0 0 32px rgba(0,0,0,.5)", marginBottom: 16 }}>
-        <PriceSpark d={d} />
-      </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12 }}>
-        {p.currentOffer.breakdown.map((r: any) => (
-          <div key={r.label} style={{ background: "#111", padding: 12, borderRadius: 8 }}>
-            <div style={{ color: "#aaa", fontSize: 12 }}>{r.label}</div>
-            <div style={{ fontWeight: 600 }}>{r.delta > 0 ? "+" : ""}{r.delta}</div>
-          </div>
-        ))}
-      </div>
+    <main>
+      <section className="container" style={{ display: 'grid', gap: 24 }}>
+        <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <h1 style={{ margin: 0 }}>Price Tracker</h1>
+          <nav style={{ display: 'flex', gap: 12 }}>
+            <Link className="button" href="/product/B08N5WRWNW?m=amazon_in">Demo Product</Link>
+            <Link className="button" href="/wishlist">Wishlist</Link>
+            <Link className="button" href="/compare">Compare</Link>
+          </nav>
+        </header>
+        <div className="card" style={{ padding: 24 }}>
+          <h2 style={{ marginTop: 0 }}>“Give every shopper a Bloomberg-terminal-grade view of every rupee.”</h2>
+          <p>Neon graphs. Predictive cones. Multi-channel alerts. Built for India, global-ready.</p>
+        </div>
+      </section>
     </main>
   );
 }
