@@ -1,0 +1,18 @@
+{
+  "manifest_version": 3,
+  "name": "Price Tracker Helper",
+  "version": "0.1.0",
+  "description": "Injects price history widget on product pages",
+  "permissions": ["storage"],
+  "host_permissions": [
+    "https://www.amazon.in/*",
+    "https://www.flipkart.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["https://www.amazon.in/*", "https://www.flipkart.com/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}

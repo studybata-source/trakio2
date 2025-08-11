@@ -1,0 +1,9 @@
+:root{--brand-hue:223;--brand-sat:85%;--brand-lit:62%;--surface-1:oklch(0.1 0 0);--surface-2:oklch(0.15 0.05 var(--brand-hue));--text-1:oklch(0.95 0.05 var(--brand-hue));--text-2:oklch(0.75 0.1 var(--brand-hue));--accent:oklch(0.7 0.2 var(--brand-hue));--success:oklch(0.75 0.25 150);--danger:oklch(0.65 0.25 30);--glow:color-mix(in oklab, var(--accent) 70%, white);}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:#000;color:var(--text-1);font-family:system-ui,Segoe UI,Inter,Roboto,Helvetica,Arial,sans-serif}
+.card{background:rgba(255,255,255,0.06);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.08);border-radius:12px;box-shadow:0 10px 40px rgba(0,0,0,.4)}
+.glow{filter:drop-shadow(0 0 12px var(--glow))}
+.button{background:linear-gradient(135deg,var(--accent),#fff1);color:white;border:0;padding:10px 16px;border-radius:10px;cursor:pointer}
+a{color:inherit;text-decoration:none}
+.container{max-width:1100px;margin:0 auto;padding:24px}
