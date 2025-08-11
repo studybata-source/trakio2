@@ -1,4 +1,5 @@
 import { computeFinalPayable } from "./computeFinalPayable.js";
+import { fetchSparklineFromCH, getClickHouse } from "./clickhouse.js";
 
 const mockProducts = [
   {
@@ -33,7 +34,15 @@ export const resolvers = {
     },
   },
   Product: {
-    sparkline: (p: any, { range }: { range: string }) => generateSpark(range),
+    sparkline: async (p: any, { range }: { range: string }) => {
+      const ch = getClickHouse();
+      if (ch) {
+        const days = range === '1D' ? 1 : range === '7D' ? 7 : range === '1M' ? 30 : 90;
+        const rows = await fetchSparklineFromCH(p.id, p.marketplace, days);
+        if (rows.length) return rows;
+      }
+      return generateSpark(range);
+    },
     currentOffer: () => {
       const calc = computeFinalPayable({ mrp: 4999, coupon: 500, bankPct: 10, bankCap: 400, shipping: 40, codFee: 0, exchangeBonus: 0 });
       return {
