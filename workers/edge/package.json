@@ -1,0 +1,12 @@
+{
+  "name": "@price-tracker/edge-worker",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "miniflare src/worker.js --modules --watch --port 8787",
+    "start": "miniflare src/worker.js --modules --port 8787"
+  },
+  "devDependencies": {
+    "miniflare": "^3.20240524.0"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "name": "price-tracker-monorepo",
+  "private": true,
+  "workspaces": ["apps/*", "workers/*", "etl/*"],
+  "scripts": {
+    "dev:web": "npm --workspace apps/web run dev",
+    "dev:api": "npm --workspace apps/api run dev",
+    "dev:worker": "npm --workspace workers/edge run dev",
+    "build": "npm -w apps/api run build && npm -w apps/web run build",
+    "start": "npm -w apps/api run start & npm -w apps/web run start"
+  }
+}
