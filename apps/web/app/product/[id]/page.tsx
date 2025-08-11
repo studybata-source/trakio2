@@ -41,6 +41,9 @@ export default async function ProductPage({ params, searchParams }: { params: { 
             ))}
           </div>
           <PriceSpark d={d} />
+          <div style={{ marginTop: 12 }}>
+            <input type="range" min={0} max={p.sparkline.length-1} defaultValue={p.sparkline.length-1} style={{ width: '100%' }} />
+          </div>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12 }}>
           {p.currentOffer.breakdown.map((r: any) => (
