@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ESNext",
+    "lib": ["ES2020", "DOM"],
+    "jsx": "react-jsx",
+    "moduleResolution": "Node",
+    "skipLibCheck": true,
+    "noEmit": true,
+    "strict": true,
+    "allowJs": false,
+    "resolveJsonModule": true,
+    "types": ["react", "react-native"],
+    "baseUrl": ".",
+    "paths": {
+      "@app/*": ["app/src/*"]
+    }
+  },
+  "include": ["app/src", "*.d.ts"],
+  "exclude": ["node_modules", "android", "ios"]
+}
