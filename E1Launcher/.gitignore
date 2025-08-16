@@ -1,0 +1,13 @@
+# React Native
+node_modules/
+android/.gradle/
+android/app/build/
+ios/Pods/
+ios/build/
+# Keystore and secrets
+android/app/*.keystore
+android/app/keystores/**
+*.jks
+*.keystore
+# Misc
+.DS_Store
